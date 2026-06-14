@@ -29,6 +29,28 @@ video.addEventListener("ended", () => {
     iniciarJogo();
 });
 
+
+// botão de pular intro
+const skipBtn = document.getElementById("skipBtn");
+
+function finalizarIntro() {
+    video.pause();
+    video.style.display = "none";
+
+    const skipBtn = document.getElementById("skipBtn");
+    if (skipBtn) skipBtn.style.display = "none";
+
+    iniciarJogo();
+}
+
+video.addEventListener("ended", () => {
+    finalizarIntro();
+});
+
+skipBtn.addEventListener("click", finalizarIntro);
+
+
+
 // =========================
 // ÁUDIO
 // =========================

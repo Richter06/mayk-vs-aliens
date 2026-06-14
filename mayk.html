@@ -44,13 +44,25 @@
             left: 0;
             z-index: 1;
         }
+
+        #skipBtn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 999;
+            padding: 10px 16px;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: 1px solid white;
+            cursor: pointer;
+        }
     </style>
 
 
 </head>
 
 <body>
-
+    <button id="skipBtn">Pular</button>
     <video id="introVideo" autoplay muted>
         <source src="administrador.mp4" type="video/mp4">
     </video>
