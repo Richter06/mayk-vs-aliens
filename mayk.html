@@ -20,12 +20,40 @@
         canvas {
             display: block;
         }
+
+        #introVideo {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+
+            width: auto;
+            height: 85vh;
+
+            max-width: 100vw;
+            max-height: 100vh;
+
+            object-fit: contain;
+
+            z-index: 10;
+        }
+
+        #game {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
     </style>
 
 
 </head>
 
 <body>
+
+    <video id="introVideo" autoplay muted>
+        <source src="administrador.mp4" type="video/mp4">
+    </video>
 
     <canvas id="game"></canvas>
 

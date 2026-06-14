@@ -11,23 +11,43 @@ function ajustarCanvas() {
 ajustarCanvas();
 window.addEventListener("resize", ajustarCanvas);
 
-//Musica
+// =========================
+// INTRO
+// =========================
+const video = document.getElementById("introVideo");
+
+let jogoIniciado = false;
+
+// libera play do vídeo (som só funciona aqui por causa do browser)
+document.addEventListener("click", () => {
+    video.muted = false;
+    video.play().catch(()=>{});
+}, { once: true });
+
+video.addEventListener("ended", () => {
+    video.style.display = "none";
+    iniciarJogo();
+});
+
+// =========================
+// ÁUDIO
+// =========================
 const musica = new Audio("../sounds/mayk.mp3");
 musica.loop = true;
 musica.volume = 0.4;
 
-//Efeitos sonoros
 const somRaio = new Audio("../sounds/alienBeam.mp3");
 somRaio.volume = 0.5;
 
 const somNave = new Audio("../sounds/shipSound.mp3");
 somNave.volume = 0.3;
-somNave.loop = true; // importante pra “segurando tecla”
+somNave.loop = true;
 
-// controle do som da nave (evita restart bugado)
 let somNaveAtivo = false;
 
-// Imagens
+// =========================
+// IMAGENS
+// =========================
 const fundo = new Image();
 fundo.src = "../sprites/fazenda.png";
 
@@ -49,25 +69,25 @@ maykRight.src = "../sprites/mayksRight.png";
 const maykLeft = new Image();
 maykLeft.src = "../sprites/mayksLeft.png";
 
-// Direção da nave
+// =========================
+// ESTADO
+// =========================
 let direcao = "right";
-
-// Pontos + dificuldade
 let pontos = 0;
 let dificuldade = 1;
 
-// Nave
 let naveX = 350;
 const naveY = 485;
 const escalaNave = 0.5;
 
-// Raio
 let abduzindo = false;
 
-// Mayk
 const larguraMayk = 60;
 const alturaMayk = 60;
 
+// =========================
+// MAYK
+// =========================
 function criarMayk() {
     const velocidadeBase = (Math.random() * 2 + 2) * dificuldade;
     const direcaoInicial = Math.random() < 0.5 ? -1 : 1;
@@ -86,7 +106,9 @@ function criarMayk() {
 let mayk = criarMayk();
 let maykCapturado = false;
 
-// Teclado
+// =========================
+// INPUT
+// =========================
 document.addEventListener("keydown", (event) => {
 
     if (event.key === "a" || event.key === "ArrowLeft") {
@@ -136,7 +158,9 @@ document.addEventListener("keyup", (event) => {
     }
 });
 
-// Sprite da nave
+// =========================
+// SPRITES
+// =========================
 function obterSpriteAtual() {
     if (direcao === "right") {
         return abduzindo ? alienBeamRight : alienRight;
@@ -145,29 +169,30 @@ function obterSpriteAtual() {
     }
 }
 
-// Sprite do Mayk
 function obterSpriteMayk() {
     return mayk.direcao === "right" ? maykRight : maykLeft;
 }
 
-//Musica play
-let musicaIniciada = false;
+// =========================
+// START JOGO
+// =========================
+function iniciarJogo() {
+    if (jogoIniciado) return;
 
-function iniciarMusica() {
-    if (musicaIniciada) return;
+    jogoIniciado = true;
 
-    musica.play()
-        .then(() => {
-            musicaIniciada = true;
-        })
-        .catch(() => {});
+    musica.play().catch(()=>{});
+
+    desenhar();
 }
 
-window.addEventListener("pointerdown", iniciarMusica);
-window.addEventListener("keydown", iniciarMusica);
-
-// Desenho
+// =========================
+// LOOP
+// =========================
 function desenhar() {
+
+    if (!jogoIniciado) return;
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     ctx.drawImage(fundo, 0, 0, canvas.width, canvas.height);
@@ -204,9 +229,9 @@ function desenhar() {
                 }
 
                 mayk.proximaDecisao = agora + 600 + Math.random() * 300;
-            }
 
-            else {
+            } else {
+
                 if (Math.random() < 0.5) {
                     mayk.velocidade *= -1;
                     mayk.direcao = mayk.velocidade > 0 ? "right" : "left";
@@ -222,29 +247,26 @@ function desenhar() {
             mayk.x = 0;
             mayk.velocidade = Math.abs(mayk.velocidade);
             mayk.direcao = "right";
-            mayk.proximaDecisao = agora + 500;
         }
 
         if (mayk.x + mayk.largura >= canvas.width) {
             mayk.x = canvas.width - mayk.largura;
             mayk.velocidade = -Math.abs(mayk.velocidade);
             mayk.direcao = "left";
-            mayk.proximaDecisao = agora + 500;
         }
     }
 
     if (!maykCapturado) {
-        const spriteMayk = obterSpriteMayk();
-        ctx.drawImage(spriteMayk, mayk.x, mayk.y, mayk.largura, mayk.altura);
+        ctx.drawImage(obterSpriteMayk(), mayk.x, mayk.y, mayk.largura, mayk.altura);
     }
 
     if (abduzindo && !maykCapturado) {
+
+        const larguraSprite = obterSpriteAtual().width * escalaNave;
         const centroRaio = naveX + larguraSprite / 2;
 
-        if (
-            centroRaio >= mayk.x &&
-            centroRaio <= mayk.x + mayk.largura
-        ) {
+        if (centroRaio >= mayk.x && centroRaio <= mayk.x + mayk.largura) {
+
             pontos++;
             dificuldade += 0.05;
 
@@ -264,7 +286,9 @@ function desenhar() {
     requestAnimationFrame(desenhar);
 }
 
+// =========================
 // LOAD
+// =========================
 let carregadas = 0;
 const totalImagens = 7;
 
