@@ -11,6 +11,13 @@ function ajustarCanvas() {
 ajustarCanvas();
 window.addEventListener("resize", ajustarCanvas);
 
+//Musica
+const musica = new Audio("../sounds/mayk.mp3");
+musica.loop = true;
+musica.volume = 0.4;
+
+
+
 // Imagens
 const fundo = new Image();
 fundo.src = "../sprites/fazenda.png";
@@ -107,9 +114,31 @@ function obterSpriteMayk() {
     return mayk.direcao === "right" ? maykRight : maykLeft;
 }
 
+
+//Musica play
+let musicaIniciada = false;
+
+function iniciarMusica() {
+    if (musicaIniciada) return;
+
+    musica.play()
+        .then(() => {
+            musicaIniciada = true;
+        })
+        .catch((err) => {
+            console.log("Áudio bloqueado:", err);
+        });
+}
+
+window.addEventListener("pointerdown", iniciarMusica);
+window.addEventListener("keydown", iniciarMusica);
+
+
 // Desenho
 function desenhar() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+
 
     // Fundo
     ctx.drawImage(fundo, 0, 0, canvas.width, canvas.height);
