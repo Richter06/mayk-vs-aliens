@@ -22,7 +22,8 @@ let mayk = {
     x: 400,
     y: canvas.height - 140,
     largura: 40,
-    altura: 40
+    altura: 40,
+    velocidade: 3
 };
 
 // Teclado
@@ -71,7 +72,18 @@ function desenhar() {
         alturaNave
     );
 
-    // Mayk
+    //Movimento do Mayk
+    mayk.x += mayk.velocidade;
+    if (mayk.x <= 0) {
+        mayk.velocidade *= -1;
+    }
+
+    if (mayk.x + mayk.largura >= canvas.width) {
+        mayk.velocidade *= -1;
+    }
+
+
+// Mayk
     ctx.fillRect(
         mayk.x,
         mayk.y,
@@ -100,6 +112,7 @@ function desenhar() {
             centroRaio <= mayk.x + mayk.largura
         ) {
             pontos++;
+               mayk.velocidade *= 1.1;
 
             mayk.x = Math.random() * (canvas.width - mayk.largura);
         }
