@@ -36,8 +36,9 @@ maykLeft.src = "../sprites/mayksLeft.png";
 // Direção da nave
 let direcao = "right";
 
-// Pontos
+// Pontos + dificuldade
 let pontos = 0;
+let dificuldade = 1;
 
 // Nave
 let naveX = 350;
@@ -52,7 +53,7 @@ const larguraMayk = 60;
 const alturaMayk = 60;
 
 function criarMayk() {
-    const velocidadeBase = Math.random() * 2 + 2;
+    const velocidadeBase = (Math.random() * 2 + 2) * dificuldade;
     const direcaoInicial = Math.random() < 0.5 ? -1 : 1;
 
     return {
@@ -126,7 +127,7 @@ function desenhar() {
     const agora = performance.now();
 
     // =========================
-    // MAYK IA (ESTÁVEL)
+    // MAYK IA
     // =========================
     if (!maykCapturado) {
 
@@ -136,11 +137,11 @@ function desenhar() {
 
         const medoDaNave = 220;
 
-        // 🧠 decisão só em intervalos (evita tremedeira)
         if (agora >= mayk.proximaDecisao) {
 
-            // PRIORIDADE: fuga da nave
+            // FUGA DA NAVE
             if (distancia < medoDaNave) {
+
                 if (centroMayk < centroNave) {
                     mayk.velocidade = -Math.abs(mayk.velocidade);
                     mayk.direcao = "left";
@@ -149,10 +150,10 @@ function desenhar() {
                     mayk.direcao = "right";
                 }
 
-                mayk.proximaDecisao = agora + 600 + Math.random() * 400;
+                mayk.proximaDecisao = agora + 600 + Math.random() * 300;
             }
 
-            // comportamento normal
+            // MOVIMENTO NORMAL
             else {
                 if (Math.random() < 0.5) {
                     mayk.velocidade *= -1;
@@ -163,10 +164,9 @@ function desenhar() {
             }
         }
 
-        // movimento contínuo
         mayk.x += mayk.velocidade;
 
-        // paredes (corrigem, não brigam com IA)
+        // PAREDES
         if (mayk.x <= 0) {
             mayk.x = 0;
             mayk.velocidade = Math.abs(mayk.velocidade);
@@ -188,8 +188,9 @@ function desenhar() {
         ctx.drawImage(spriteMayk, mayk.x, mayk.y, mayk.largura, mayk.altura);
     }
 
-    // Captura
+    // CAPTURA
     if (abduzindo && !maykCapturado) {
+        const larguraSprite = obterSpriteAtual().width * escalaNave;
         const centroRaio = naveX + larguraSprite / 2;
 
         if (
@@ -197,6 +198,8 @@ function desenhar() {
             centroRaio <= mayk.x + mayk.largura
         ) {
             pontos++;
+            dificuldade += 0.05;
+
             maykCapturado = true;
 
             setTimeout(() => {
@@ -214,7 +217,7 @@ function desenhar() {
     requestAnimationFrame(desenhar);
 }
 
-// Load assets
+// LOAD
 let carregadas = 0;
 const totalImagens = 7;
 
