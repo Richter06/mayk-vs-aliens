@@ -3,53 +3,48 @@ const ctx = canvas.getContext("2d");
 
 ctx.imageSmoothingEnabled = false;
 
+// =========================
+// CANVAS
+// =========================
 function ajustarCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 }
-
 ajustarCanvas();
 window.addEventListener("resize", ajustarCanvas);
+
+// =========================
+// ESTADO GLOBAL
+// =========================
+let jogoIniciado = false;
+let assetsCarregados = false;
 
 // =========================
 // INTRO
 // =========================
 const video = document.getElementById("introVideo");
-
-let jogoIniciado = false;
-
-// libera play do vídeo (som só funciona aqui por causa do browser)
-document.addEventListener("click", () => {
-    video.muted = false;
-    video.play().catch(()=>{});
-}, { once: true });
-
-video.addEventListener("ended", () => {
-    video.style.display = "none";
-    iniciarJogo();
-});
-
-
-// botão de pular intro
 const skipBtn = document.getElementById("skipBtn");
 
+// clique libera áudio do vídeo (browser policy)
+document.addEventListener("click", () => {
+    video.muted = false;
+    video.play().catch(() => {});
+}, { once: true });
+
+// função única de finalizar intro
 function finalizarIntro() {
+    if (jogoIniciado) return;
+
     video.pause();
     video.style.display = "none";
 
-    const skipBtn = document.getElementById("skipBtn");
     if (skipBtn) skipBtn.style.display = "none";
 
     iniciarJogo();
 }
 
-video.addEventListener("ended", () => {
-    finalizarIntro();
-});
-
-skipBtn.addEventListener("click", finalizarIntro);
-
-
+video.addEventListener("ended", finalizarIntro);
+skipBtn?.addEventListener("click", finalizarIntro);
 
 // =========================
 // ÁUDIO
@@ -68,31 +63,33 @@ somNave.loop = true;
 let somNaveAtivo = false;
 
 // =========================
-// IMAGENS
+// IMAGENS (com proteção contra 404)
 // =========================
-const fundo = new Image();
-fundo.src = "../sprites/fazenda.png";
+function safeImage(src) {
+    const img = new Image();
+    img.src = src;
 
-const alienRight = new Image();
-alienRight.src = "../sprites/alienRight.png";
+    img.onerror = () => {
+        console.error("Imagem não encontrada:", src);
+        img._broken = true;
+    };
 
-const alienLeft = new Image();
-alienLeft.src = "../sprites/alienLeft.png";
+    return img;
+}
 
-const alienBeamRight = new Image();
-alienBeamRight.src = "../sprites/alienBeamRight.png";
+const fundo = safeImage("../sprites/fazenda.png");
 
-const alienBeamLeft = new Image();
-alienBeamLeft.src = "../sprites/alienBeamLeft.png";
+const alienRight = safeImage("../sprites/alienRight.png");
+const alienLeft = safeImage("../sprites/alienLeft.png");
 
-const maykRight = new Image();
-maykRight.src = "../sprites/mayksRight.png";
+const alienBeamRight = safeImage("../sprites/alienBeamRight.png");
+const alienBeamLeft = safeImage("../sprites/alienBeamLeft.png");
 
-const maykLeft = new Image();
-maykLeft.src = "../sprites/mayksLeft.png";
+const maykRight = safeImage("../sprites/mayksRight.png");
+const maykLeft = safeImage("../sprites/mayksLeft.png");
 
 // =========================
-// ESTADO
+// ESTADO DO JOGO
 // =========================
 let direcao = "right";
 let pontos = 0;
@@ -139,7 +136,7 @@ document.addEventListener("keydown", (event) => {
 
         if (!somNaveAtivo) {
             somNave.currentTime = 0;
-            somNave.play().catch(()=>{});
+            somNave.play().catch(() => {});
             somNaveAtivo = true;
         }
     }
@@ -150,7 +147,7 @@ document.addEventListener("keydown", (event) => {
 
         if (!somNaveAtivo) {
             somNave.currentTime = 0;
-            somNave.play().catch(()=>{});
+            somNave.play().catch(() => {});
             somNaveAtivo = true;
         }
     }
@@ -158,7 +155,7 @@ document.addEventListener("keydown", (event) => {
     if (event.key === " ") {
         abduzindo = true;
         somRaio.currentTime = 0;
-        somRaio.play().catch(()=>{});
+        somRaio.play().catch(() => {});
     }
 });
 
@@ -168,12 +165,7 @@ document.addEventListener("keyup", (event) => {
         abduzindo = false;
     }
 
-    if (
-        event.key === "a" ||
-        event.key === "ArrowLeft" ||
-        event.key === "d" ||
-        event.key === "ArrowRight"
-    ) {
+    if (["a","d","ArrowLeft","ArrowRight"].includes(event.key)) {
         somNave.pause();
         somNave.currentTime = 0;
         somNaveAtivo = false;
@@ -200,12 +192,13 @@ function obterSpriteMayk() {
 // =========================
 function iniciarJogo() {
     if (jogoIniciado) return;
+    if (!assetsCarregados) return;
 
     jogoIniciado = true;
 
-    musica.play().catch(()=>{});
+    musica.play().catch(() => {});
 
-    desenhar();
+    requestAnimationFrame(desenhar);
 }
 
 // =========================
@@ -217,16 +210,19 @@ function desenhar() {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    ctx.drawImage(fundo, 0, 0, canvas.width, canvas.height);
+    if (!fundo._broken) {
+        ctx.drawImage(fundo, 0, 0, canvas.width, canvas.height);
+    }
 
     const spriteAtual = obterSpriteAtual();
     const larguraSprite = spriteAtual.width * escalaNave;
     const alturaSprite = spriteAtual.height * escalaNave;
 
-    naveX = Math.max(0, naveX);
-    naveX = Math.min(canvas.width - larguraSprite, naveX);
+    naveX = Math.max(0, Math.min(canvas.width - larguraSprite, naveX));
 
-    ctx.drawImage(spriteAtual, naveX, naveY, larguraSprite, alturaSprite);
+    if (!spriteAtual._broken) {
+        ctx.drawImage(spriteAtual, naveX, naveY, larguraSprite, alturaSprite);
+    }
 
     const agora = performance.now();
 
@@ -236,55 +232,36 @@ function desenhar() {
         const centroNave = naveX + larguraSprite / 2;
         const distancia = Math.abs(centroMayk - centroNave);
 
-        const medoDaNave = 220;
+        const medo = 220;
 
         if (agora >= mayk.proximaDecisao) {
 
-            if (distancia < medoDaNave) {
-
-                if (centroMayk < centroNave) {
-                    mayk.velocidade = -Math.abs(mayk.velocidade);
-                    mayk.direcao = "left";
-                } else {
-                    mayk.velocidade = Math.abs(mayk.velocidade);
-                    mayk.direcao = "right";
-                }
-
-                mayk.proximaDecisao = agora + 600 + Math.random() * 300;
-
+            if (distancia < medo) {
+                mayk.velocidade *= (centroMayk < centroNave ? -1 : 1);
+                mayk.direcao = mayk.velocidade > 0 ? "right" : "left";
+                mayk.proximaDecisao = agora + 600;
             } else {
-
                 if (Math.random() < 0.5) {
                     mayk.velocidade *= -1;
                     mayk.direcao = mayk.velocidade > 0 ? "right" : "left";
                 }
-
-                mayk.proximaDecisao = agora + 900 + Math.random() * 700;
+                mayk.proximaDecisao = agora + 900;
             }
         }
 
         mayk.x += mayk.velocidade;
 
-        if (mayk.x <= 0) {
-            mayk.x = 0;
-            mayk.velocidade = Math.abs(mayk.velocidade);
-            mayk.direcao = "right";
-        }
-
-        if (mayk.x + mayk.largura >= canvas.width) {
+        if (mayk.x <= 0) mayk.x = 0;
+        if (mayk.x + mayk.largura >= canvas.width)
             mayk.x = canvas.width - mayk.largura;
-            mayk.velocidade = -Math.abs(mayk.velocidade);
-            mayk.direcao = "left";
-        }
     }
 
-    if (!maykCapturado) {
+    if (!maykCapturado && !obterSpriteMayk()._broken) {
         ctx.drawImage(obterSpriteMayk(), mayk.x, mayk.y, mayk.largura, mayk.altura);
     }
 
     if (abduzindo && !maykCapturado) {
 
-        const larguraSprite = obterSpriteAtual().width * escalaNave;
         const centroRaio = naveX + larguraSprite / 2;
 
         if (centroRaio >= mayk.x && centroRaio <= mayk.x + mayk.largura) {
@@ -309,22 +286,22 @@ function desenhar() {
 }
 
 // =========================
-// LOAD
+// LOAD SYSTEM
 // =========================
 let carregadas = 0;
-const totalImagens = 7;
+const total = 7;
 
-function imagemCarregada() {
+function onLoad() {
     carregadas++;
-    if (carregadas === totalImagens) {
-        desenhar();
+    if (carregadas === total) {
+        assetsCarregados = true;
+        console.log("Assets carregados");
     }
 }
 
-fundo.onload = imagemCarregada;
-alienRight.onload = imagemCarregada;
-alienLeft.onload = imagemCarregada;
-alienBeamRight.onload = imagemCarregada;
-alienBeamLeft.onload = imagemCarregada;
-maykRight.onload = imagemCarregada;
-maykLeft.onload = imagemCarregada;
+[
+fundo,
+alienRight, alienLeft,
+alienBeamRight, alienBeamLeft,
+maykRight, maykLeft
+].forEach(img => img.onload = onLoad);
