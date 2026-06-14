@@ -16,6 +16,10 @@ const musica = new Audio("../sounds/mayk.mp3");
 musica.loop = true;
 musica.volume = 0.4;
 
+//Efeitos sonoros
+const somRaio = new Audio("../sounds/alienBeam.mp3");
+somRaio.volume = 0.5;
+
 
 
 // Imagens
@@ -89,8 +93,11 @@ document.addEventListener("keydown", (event) => {
         direcao = "right";
     }
 
-    if (event.key === " ") {
+     if (event.key === " ") {
         abduzindo = true;
+
+        somRaio.currentTime = 0; // reinicia o som
+        somRaio.play();
     }
 });
 
