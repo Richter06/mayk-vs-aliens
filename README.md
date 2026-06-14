@@ -71,16 +71,6 @@ quanto mais você joga, mais difícil ele fica.
 
 ---
 
-## 📁 Estrutura
-/sprites
-/sounds
-index.html
-script.js
-style.css
-
-
----
-
 ## 🚀 Como rodar localmente
 
 ```bash
