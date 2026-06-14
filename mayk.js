@@ -27,6 +27,12 @@ alienBeamRight.src = "../sprites/alienBeamRight.png";
 const alienBeamLeft = new Image();
 alienBeamLeft.src = "../sprites/alienBeamLeft.png";
 
+const maykRight = new Image();
+maykRight.src = "../sprites/mayksRight.png";
+
+const maykLeft = new Image();
+maykLeft.src = "../sprites/mayksLeft.png";
+
 // Direção da nave
 let direcao = "right"; // "left" ou "right"
 
@@ -36,7 +42,7 @@ let pontos = 0;
 // Nave
 let naveX = 350;
 const naveY = 485;
-const escalaNave = 0.5; // aumenta ou diminui a nave aqui
+const escalaNave = 0.5;
 
 // Raio
 let abduzindo = false;
@@ -44,10 +50,11 @@ let abduzindo = false;
 // Mayk
 let mayk = {
     x: 400,
-    y: canvas.height - 140,
-    largura: 40,
-    altura: 40,
-    velocidade: 3
+    y: canvas.height - 163,
+    largura: 60,
+    altura: 60,
+    velocidade: 3,
+    direcao: "right"
 };
 
 let maykCapturado = false;
@@ -84,6 +91,11 @@ function obterSpriteAtual() {
     }
 }
 
+// Escolhe sprite do Mayk
+function obterSpriteMayk() {
+    return mayk.direcao === "right" ? maykRight : maykLeft;
+}
+
 // Desenho
 function desenhar() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -91,7 +103,7 @@ function desenhar() {
     // Fundo
     ctx.drawImage(fundo, 0, 0, canvas.width, canvas.height);
 
-    // Limites da nave
+    // Nave
     const spriteAtual = obterSpriteAtual();
     const larguraSprite = spriteAtual.width * escalaNave;
     const alturaSprite = spriteAtual.height * escalaNave;
@@ -99,9 +111,17 @@ function desenhar() {
     naveX = Math.max(0, naveX);
     naveX = Math.min(canvas.width - larguraSprite, naveX);
 
+    ctx.drawImage(spriteAtual, naveX, naveY, larguraSprite, alturaSprite);
+
     // Movimento do Mayk
     if (!maykCapturado) {
         mayk.x += mayk.velocidade;
+
+        if (mayk.velocidade > 0) {
+            mayk.direcao = "right";
+        } else {
+            mayk.direcao = "left";
+        }
 
         if (mayk.x <= 0) {
             mayk.x = 0;
@@ -116,12 +136,9 @@ function desenhar() {
 
     // Mayk
     if (!maykCapturado) {
-        ctx.fillStyle = "yellow";
-        ctx.fillRect(mayk.x, mayk.y, mayk.largura, mayk.altura);
+        const spriteMayk = obterSpriteMayk();
+        ctx.drawImage(spriteMayk, mayk.x, mayk.y, mayk.largura, mayk.altura);
     }
-
-    // Nave com sprite
-    ctx.drawImage(spriteAtual, naveX, naveY, larguraSprite, alturaSprite);
 
     // Captura
     if (abduzindo && !maykCapturado) {
@@ -152,7 +169,7 @@ function desenhar() {
 
 // Começa quando as imagens carregarem
 let carregadas = 0;
-const totalImagens = 5;
+const totalImagens = 7;
 
 function imagemCarregada() {
     carregadas++;
@@ -166,3 +183,5 @@ alienRight.onload = imagemCarregada;
 alienLeft.onload = imagemCarregada;
 alienBeamRight.onload = imagemCarregada;
 alienBeamLeft.onload = imagemCarregada;
+maykRight.onload = imagemCarregada;
+maykLeft.onload = imagemCarregada;
