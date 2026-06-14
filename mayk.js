@@ -34,7 +34,7 @@ const maykLeft = new Image();
 maykLeft.src = "../sprites/mayksLeft.png";
 
 // Direção da nave
-let direcao = "right"; // "left" ou "right"
+let direcao = "right";
 
 // Pontos
 let pontos = 0;
@@ -48,15 +48,25 @@ const escalaNave = 0.5;
 let abduzindo = false;
 
 // Mayk
-let mayk = {
-    x: 400,
-    y: canvas.height - 163,
-    largura: 60,
-    altura: 60,
-    velocidade: 3,
-    direcao: "right"
-};
+const larguraMayk = 60;
+const alturaMayk = 60;
 
+function criarMayk() {
+    const velocidadeBase = Math.random() * 2 + 2;
+    const direcaoInicial = Math.random() < 0.5 ? -1 : 1;
+
+    return {
+        x: Math.random() * Math.max(1, canvas.width - larguraMayk),
+        y: canvas.height - 163,
+        largura: larguraMayk,
+        altura: alturaMayk,
+        velocidade: velocidadeBase * direcaoInicial,
+        direcao: direcaoInicial > 0 ? "right" : "left",
+        proximaDecisao: 0
+    };
+}
+
+let mayk = criarMayk();
 let maykCapturado = false;
 
 // Teclado
@@ -82,7 +92,7 @@ document.addEventListener("keyup", (event) => {
     }
 });
 
-// Escolhe sprite da nave
+// Sprite da nave
 function obterSpriteAtual() {
     if (direcao === "right") {
         return abduzindo ? alienBeamRight : alienRight;
@@ -91,7 +101,7 @@ function obterSpriteAtual() {
     }
 }
 
-// Escolhe sprite do Mayk
+// Sprite do Mayk
 function obterSpriteMayk() {
     return mayk.direcao === "right" ? maykRight : maykLeft;
 }
@@ -113,28 +123,66 @@ function desenhar() {
 
     ctx.drawImage(spriteAtual, naveX, naveY, larguraSprite, alturaSprite);
 
-    // Movimento do Mayk
-    if (!maykCapturado) {
-        mayk.x += mayk.velocidade;
+    const agora = performance.now();
 
-        if (mayk.velocidade > 0) {
-            mayk.direcao = "right";
-        } else {
-            mayk.direcao = "left";
+    // =========================
+    // MAYK IA (ESTÁVEL)
+    // =========================
+    if (!maykCapturado) {
+
+        const centroMayk = mayk.x + mayk.largura / 2;
+        const centroNave = naveX + larguraSprite / 2;
+        const distancia = Math.abs(centroMayk - centroNave);
+
+        const medoDaNave = 220;
+
+        // 🧠 decisão só em intervalos (evita tremedeira)
+        if (agora >= mayk.proximaDecisao) {
+
+            // PRIORIDADE: fuga da nave
+            if (distancia < medoDaNave) {
+                if (centroMayk < centroNave) {
+                    mayk.velocidade = -Math.abs(mayk.velocidade);
+                    mayk.direcao = "left";
+                } else {
+                    mayk.velocidade = Math.abs(mayk.velocidade);
+                    mayk.direcao = "right";
+                }
+
+                mayk.proximaDecisao = agora + 600 + Math.random() * 400;
+            }
+
+            // comportamento normal
+            else {
+                if (Math.random() < 0.5) {
+                    mayk.velocidade *= -1;
+                    mayk.direcao = mayk.velocidade > 0 ? "right" : "left";
+                }
+
+                mayk.proximaDecisao = agora + 900 + Math.random() * 700;
+            }
         }
 
+        // movimento contínuo
+        mayk.x += mayk.velocidade;
+
+        // paredes (corrigem, não brigam com IA)
         if (mayk.x <= 0) {
             mayk.x = 0;
-            mayk.velocidade *= -1;
+            mayk.velocidade = Math.abs(mayk.velocidade);
+            mayk.direcao = "right";
+            mayk.proximaDecisao = agora + 500;
         }
 
         if (mayk.x + mayk.largura >= canvas.width) {
             mayk.x = canvas.width - mayk.largura;
-            mayk.velocidade *= -1;
+            mayk.velocidade = -Math.abs(mayk.velocidade);
+            mayk.direcao = "left";
+            mayk.proximaDecisao = agora + 500;
         }
     }
 
-    // Mayk
+    // Mayk desenhar
     if (!maykCapturado) {
         const spriteMayk = obterSpriteMayk();
         ctx.drawImage(spriteMayk, mayk.x, mayk.y, mayk.largura, mayk.altura);
@@ -149,17 +197,16 @@ function desenhar() {
             centroRaio <= mayk.x + mayk.largura
         ) {
             pontos++;
-            mayk.velocidade *= 1.1;
             maykCapturado = true;
 
             setTimeout(() => {
-                mayk.x = Math.random() * (canvas.width - mayk.largura);
+                mayk = criarMayk();
                 maykCapturado = false;
             }, 500);
         }
     }
 
-    // Texto
+    // UI
     ctx.fillStyle = "white";
     ctx.font = "30px Arial";
     ctx.fillText("Pontos: " + pontos, 20, 40);
@@ -167,7 +214,7 @@ function desenhar() {
     requestAnimationFrame(desenhar);
 }
 
-// Começa quando as imagens carregarem
+// Load assets
 let carregadas = 0;
 const totalImagens = 7;
 
