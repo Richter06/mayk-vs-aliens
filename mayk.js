@@ -20,7 +20,12 @@ musica.volume = 0.4;
 const somRaio = new Audio("../sounds/alienBeam.mp3");
 somRaio.volume = 0.5;
 
+const somNave = new Audio("../sounds/shipSound.mp3");
+somNave.volume = 0.3;
+somNave.loop = true; // importante pra “segurando tecla”
 
+// controle do som da nave (evita restart bugado)
+let somNaveAtivo = false;
 
 // Imagens
 const fundo = new Image();
@@ -83,27 +88,51 @@ let maykCapturado = false;
 
 // Teclado
 document.addEventListener("keydown", (event) => {
+
     if (event.key === "a" || event.key === "ArrowLeft") {
         naveX -= 10;
         direcao = "left";
+
+        if (!somNaveAtivo) {
+            somNave.currentTime = 0;
+            somNave.play().catch(()=>{});
+            somNaveAtivo = true;
+        }
     }
 
     if (event.key === "d" || event.key === "ArrowRight") {
         naveX += 10;
         direcao = "right";
+
+        if (!somNaveAtivo) {
+            somNave.currentTime = 0;
+            somNave.play().catch(()=>{});
+            somNaveAtivo = true;
+        }
     }
 
-     if (event.key === " ") {
+    if (event.key === " ") {
         abduzindo = true;
-
-        somRaio.currentTime = 0; // reinicia o som
-        somRaio.play();
+        somRaio.currentTime = 0;
+        somRaio.play().catch(()=>{});
     }
 });
 
 document.addEventListener("keyup", (event) => {
+
     if (event.key === " ") {
         abduzindo = false;
+    }
+
+    if (
+        event.key === "a" ||
+        event.key === "ArrowLeft" ||
+        event.key === "d" ||
+        event.key === "ArrowRight"
+    ) {
+        somNave.pause();
+        somNave.currentTime = 0;
+        somNaveAtivo = false;
     }
 });
 
@@ -121,7 +150,6 @@ function obterSpriteMayk() {
     return mayk.direcao === "right" ? maykRight : maykLeft;
 }
 
-
 //Musica play
 let musicaIniciada = false;
 
@@ -132,25 +160,18 @@ function iniciarMusica() {
         .then(() => {
             musicaIniciada = true;
         })
-        .catch((err) => {
-            console.log("Áudio bloqueado:", err);
-        });
+        .catch(() => {});
 }
 
 window.addEventListener("pointerdown", iniciarMusica);
 window.addEventListener("keydown", iniciarMusica);
 
-
 // Desenho
 function desenhar() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-
-
-    // Fundo
     ctx.drawImage(fundo, 0, 0, canvas.width, canvas.height);
 
-    // Nave
     const spriteAtual = obterSpriteAtual();
     const larguraSprite = spriteAtual.width * escalaNave;
     const alturaSprite = spriteAtual.height * escalaNave;
@@ -162,9 +183,6 @@ function desenhar() {
 
     const agora = performance.now();
 
-    // =========================
-    // MAYK IA
-    // =========================
     if (!maykCapturado) {
 
         const centroMayk = mayk.x + mayk.largura / 2;
@@ -175,7 +193,6 @@ function desenhar() {
 
         if (agora >= mayk.proximaDecisao) {
 
-            // FUGA DA NAVE
             if (distancia < medoDaNave) {
 
                 if (centroMayk < centroNave) {
@@ -189,7 +206,6 @@ function desenhar() {
                 mayk.proximaDecisao = agora + 600 + Math.random() * 300;
             }
 
-            // MOVIMENTO NORMAL
             else {
                 if (Math.random() < 0.5) {
                     mayk.velocidade *= -1;
@@ -202,7 +218,6 @@ function desenhar() {
 
         mayk.x += mayk.velocidade;
 
-        // PAREDES
         if (mayk.x <= 0) {
             mayk.x = 0;
             mayk.velocidade = Math.abs(mayk.velocidade);
@@ -218,15 +233,12 @@ function desenhar() {
         }
     }
 
-    // Mayk desenhar
     if (!maykCapturado) {
         const spriteMayk = obterSpriteMayk();
         ctx.drawImage(spriteMayk, mayk.x, mayk.y, mayk.largura, mayk.altura);
     }
 
-    // CAPTURA
     if (abduzindo && !maykCapturado) {
-        const larguraSprite = obterSpriteAtual().width * escalaNave;
         const centroRaio = naveX + larguraSprite / 2;
 
         if (
@@ -245,7 +257,6 @@ function desenhar() {
         }
     }
 
-    // UI
     ctx.fillStyle = "white";
     ctx.font = "30px Arial";
     ctx.fillText("Pontos: " + pontos, 20, 40);
