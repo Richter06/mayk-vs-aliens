@@ -8,7 +8,7 @@
 
 ## 🎮 Play Online
 
-👉 **[Jogar agora](COLE_AQUI_LINK_DO_JOGO)**
+👉 **[Jogar agora](https://richter06.github.io/mayk-vs-aliens/)**
 
 ---
 
