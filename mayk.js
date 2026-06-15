@@ -49,14 +49,14 @@ skipBtn?.addEventListener("click", finalizarIntro);
 // =========================
 // ÁUDIO
 // =========================
-const musica = new Audio("../sounds/mayk.mp3");
+const musica = new Audio("/sounds/mayk.mp3");
 musica.loop = true;
 musica.volume = 0.4;
 
-const somRaio = new Audio("../sounds/alienBeam.mp3");
+const somRaio = new Audio("/sounds/alienBeam.mp3");
 somRaio.volume = 0.5;
 
-const somNave = new Audio("../sounds/shipSound.mp3");
+const somNave = new Audio("/sounds/shipSound.mp3");
 somNave.volume = 0.3;
 somNave.loop = true;
 
@@ -77,16 +77,16 @@ function safeImage(src) {
     return img;
 }
 
-const fundo = safeImage("../sprites/fazenda.png");
+const fundo = safeImage("/sprites/fazenda.png");
 
-const alienRight = safeImage("../sprites/alienRight.png");
-const alienLeft = safeImage("../sprites/alienLeft.png");
+const alienRight = safeImage("/sprites/alienRight.png");
+const alienLeft = safeImage("/sprites/alienLeft.png");
 
-const alienBeamRight = safeImage("../sprites/alienBeamRight.png");
-const alienBeamLeft = safeImage("../sprites/alienBeamLeft.png");
+const alienBeamRight = safeImage("/sprites/alienBeamRight.png");
+const alienBeamLeft = safeImage("/sprites/alienBeamLeft.png");
 
-const maykRight = safeImage("../sprites/mayksRight.png");
-const maykLeft = safeImage("../sprites/mayksLeft.png");
+const maykRight = safeImage("/sprites/mayksRight.png");
+const maykLeft = safeImage("/sprites/mayksLeft.png");
 
 // =========================
 // ESTADO DO JOGO
